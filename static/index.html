@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FD Management System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .navbar-brand {
+            font-weight: bold;
+        }
+        .card {
+            transition: transform 0.2s;
+            border: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        .section-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .btn-custom {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+        }
+        .btn-custom:hover {
+            background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+            color: white;
+        }
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        .table th {
+            background-color: #f8f9fa;
+            border-top: none;
+        }
+        .loading {
+            display: none;
+        }
+        .alert {
+            border: none;
+            border-radius: 0.5rem;
+        }
+        .modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 0.5rem 0.5rem 0 0;
+        }
+        .modal-header .btn-close {
+            filter: invert(1);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-bank2"></i> FD Management System
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#banks">Banks</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#fd-plans">FD Plans</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#excel-upload">Excel Upload</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/docs" target="_blank">API Docs</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mt-4">
+        <!-- Dashboard Overview -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="section-header">
+                    <h2><i class="bi bi-speedometer2"></i> Dashboard Overview</h2>
+                    <p class="mb-0">Manage banks, FD plans, and bulk uploads efficiently</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <i class="bi bi-bank text-primary" style="font-size: 2rem;"></i>
+                        <h5 class="card-title mt-2">Total Banks</h5>
+                        <p class="card-text display-6" id="total-banks">-</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <i class="bi bi-diagram-3 text-success" style="font-size: 2rem;"></i>
+                        <h5 class="card-title mt-2">FD Plans</h5>
+                        <p class="card-text display-6" id="total-fd-plans">-</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <i class="bi bi-check-circle text-info" style="font-size: 2rem;"></i>
+                        <h5 class="card-title mt-2">Active Plans</h5>
+                        <p class="card-text display-6" id="active-plans">-</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <i class="bi bi-file-earmark-excel text-warning" style="font-size: 2rem;"></i>
+                        <h5 class="card-title mt-2">Excel Uploads</h5>
+                        <p class="card-text display-6" id="total-uploads">-</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Banks Section -->
+        <section id="banks" class="mb-5">
+            <div class="section-header">
+                <h3><i class="bi bi-bank"></i> Bank Management</h3>
+                <p class="mb-0">Onboard and manage banks in the system</p>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <input type="text" class="form-control" id="bank-search" placeholder="Search banks...">
+                </div>
+                <div class="col-md-6 text-end">
+                    <button class="btn btn-custom" data-bs-toggle="modal" data-bs-target="#bankModal">
+                        <i class="bi bi-plus"></i> Add New Bank
+                    </button>
+                    <button class="btn btn-outline-secondary ms-2" onclick="loadBanks()">
+                        <i class="bi bi-arrow-clockwise"></i> Refresh
+                    </button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Code</th>
+                                    <th>Contact Person</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="banks-table-body">
+                                <tr>
+                                    <td colspan="5" class="text-center">
+                                        <div class="spinner-border" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FD Plans Section -->
+        <section id="fd-plans" class="mb-5">
+            <div class="section-header">
+                <h3><i class="bi bi-diagram-3"></i> FD Plans Management</h3>
+                <p class="mb-0">Create and manage fixed deposit plans with conditional interest rates</p>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <input type="text" class="form-control" id="fd-plan-search" placeholder="Search FD plans...">
+                </div>
+                <div class="col-md-4">
+                    <select class="form-select" id="fd-plan-bank-filter">
+                        <option value="">All Banks</option>
+                    </select>
+                </div>
+                <div class="col-md-4 text-end">
+                    <button class="btn btn-custom" data-bs-toggle="modal" data-bs-target="#fdPlanModal">
+                        <i class="bi bi-plus"></i> Add FD Plan
+                    </button>
+                    <button class="btn btn-outline-secondary ms-2" onclick="loadFDPlans()">
+                        <i class="bi bi-arrow-clockwise"></i> Refresh
+                    </button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Plan Name</th>
+                                    <th>Bank</th>
+                                    <th>Min Amount</th>
+                                    <th>Tenure</th>
+                                    <th>Base Rate</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="fd-plans-table-body">
+                                <tr>
+                                    <td colspan="7" class="text-center">
+                                        <div class="spinner-border" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Excel Upload Section -->
+        <section id="excel-upload" class="mb-5">
+            <div class="section-header">
+                <h3><i class="bi bi-file-earmark-excel"></i> Excel Upload</h3>
+                <p class="mb-0">Bulk upload FD plans via Excel files</p>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Upload Excel File</h5>
+                            <form id="excel-upload-form">
+                                <div class="mb-3">
+                                    <label for="upload-bank" class="form-label">Select Bank</label>
+                                    <select class="form-select" id="upload-bank" required>
+                                        <option value="">Choose bank...</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="uploaded-by" class="form-label">Uploaded By</label>
+                                    <input type="text" class="form-control" id="uploaded-by" placeholder="Your name">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="excel-file" class="form-label">Excel File</label>
+                                    <input type="file" class="form-control" id="excel-file" accept=".xlsx,.xls" required>
+                                    <div class="form-text">Supported formats: .xlsx, .xls</div>
+                                </div>
+                                <button type="submit" class="btn btn-custom">
+                                    <i class="bi bi-upload"></i> Upload & Process
+                                </button>
+                                <button type="button" class="btn btn-outline-info ms-2" onclick="downloadTemplate()">
+                                    <i class="bi bi-download"></i> Download Template
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Upload Status</h5>
+                            <div id="upload-status" class="text-muted">
+                                No uploads in progress
+                            </div>
+                            <div id="upload-progress" style="display: none;">
+                                <div class="progress mt-2">
+                                    <div class="progress-bar" role="progressbar" style="width: 0%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Modals -->
+    <!-- Bank Modal -->
+    <div class="modal fade" id="bankModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New Bank</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="bank-form">
+                        <div class="mb-3">
+                            <label for="bank-name" class="form-label">Bank Name *</label>
+                            <input type="text" class="form-control" id="bank-name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="bank-code" class="form-label">Bank Code *</label>
+                            <input type="text" class="form-control" id="bank-code" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="contact-person" class="form-label">Contact Person</label>
+                            <input type="text" class="form-control" id="contact-person">
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email">
+                        </div>
+                        <div class="mb-3">
+                            <label for="phone" class="form-label">Phone</label>
+                            <input type="tel" class="form-control" id="phone">
+                        </div>
+                        <div class="mb-3">
+                            <label for="address" class="form-label">Address</label>
+                            <textarea class="form-control" id="address" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" rows="2"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-custom" onclick="saveBank()">Save Bank</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FD Plan Modal -->
+    <div class="modal fade" id="fdPlanModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add FD Plan</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="fd-plan-form">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="fd-bank" class="form-label">Bank *</label>
+                                    <select class="form-select" id="fd-bank" required>
+                                        <option value="">Select Bank</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="plan-name" class="form-label">Plan Name *</label>
+                                    <input type="text" class="form-control" id="plan-name" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="min-amount" class="form-label">Minimum Amount *</label>
+                                    <input type="number" class="form-control" id="min-amount" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="max-amount" class="form-label">Maximum Amount</label>
+                                    <input type="number" class="form-control" id="max-amount">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="tenure" class="form-label">Tenure (Months) *</label>
+                                    <input type="number" class="form-control" id="tenure" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="base-rate" class="form-label">Base Interest Rate (%) *</label>
+                                    <input type="number" class="form-control" id="base-rate" step="0.01" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="plan-description" class="form-label">Description</label>
+                            <textarea class="form-control" id="plan-description" rows="3"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-custom" onclick="saveFDPlan()">Save FD Plan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alert Container -->
+    <div id="alert-container" style="position: fixed; top: 20px; right: 20px; z-index: 1050; min-width: 300px;">
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
